@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8" >
+	<link rel="stylesheet" href="{{ url_for('static',filename='css/style.css',_external=True) }}">
+	<title> script to upload files to the server</title>
+</head>
+<body>
+	<p>
+		<!-- кнопка для выбора файлов, добавлены пользовательские атрибуты для передачи дополнительных параметров:
+			адреса для POST запросов
+			ссылку для js скрипта
+			csrf_token  для проверки подлиности -->
+		<input  
+			type="file" 
+			id='file-upload'
+			class ="hide"
+			name="file"
+			multiple
+			src_script="{{ url_for('static', filename = 'js/script.js',_external=True) }}"
+			url_upload ="{{ url_for('upload',_external=True) }}"
+			csrf-token="{{ csrf_token() }}"
+		>
+		<label for="file-upload"> Upload</label>
+	</p>
+</body>
+</html>

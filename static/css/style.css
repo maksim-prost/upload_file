@@ -1,0 +1,12 @@
+.hide{
+	display:none;
+}
+
+label{
+	display: inline-block;
+	cursor: pointer;
+	background-color: #825;
+	padding: 15px 30px;
+	color: white;
+	box-shadow: unset;
+}

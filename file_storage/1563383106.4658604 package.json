@@ -1,0 +1,16 @@
+{
+  "name": "upload file to server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.html",
+  "author": "maksim_prost",
+  "window": {
+    "toolbar": false,
+    "width": 150,
+    "height": 140
+  },
+  "license": "ISC",
+  "dependencies": {
+    "pretty-bytes": "^1.0.2"
+  }
+}
