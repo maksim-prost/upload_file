@@ -1,13 +1,26 @@
-from flask import Flask, request, render_template, url_for
+from flask import Flask, Response, request, render_template, jsonify
 from flask_wtf.csrf  import  CSRFProtect, CSRFError
 import config
 from time import time
 import os
 
 # заголовок ответа сервера для того чтобы браузер принимал ответы
-headers = {'Access-Control-Allow-Origin': '*',
-		   'Content-type': 'text/html',	
-		   'Access-Control-Allow-Headers':'X-CSRFToken',}
+class MyResponse(Response):
+	def __init__(self, response,**args):
+		base_headers = {'Access-Control-Allow-Origin': '*',
+				'Content-type': 'text/html',	}
+				# 'Access-Control-Allow-Headers':('X-CSRFToken',"any-field")}
+		# base_headers={}
+		base_headers.update(args.get('headers') or {})
+		args['headers'] = base_headers
+		return super(MyResponse,self).__init__(response,**args)
+	
+	@classmethod
+	def force_type(cls, rv, environ=None):
+		if isinstance(rv, dict):
+			rv = jsonify(rv)
+		return super(MyResponse, cls).force_type(rv, environ)
+
 
 def check_file(file):
 	# проверка файла на некоторые ограничения
@@ -16,31 +29,27 @@ def check_file(file):
 # cоздаем прилдожение, загружаем настройки, подключаем проверку подлиности
 app = Flask(__name__) 
 app.config.from_object ( 'config' )
+app.response_class = MyResponse
 csrf  =  CSRFProtect ( app )
 
 @app.route('/',methods=['GET',])
 # @csrf.exempt
 def index():
-	return render_template('index.html'),200,headers
+	return render_template('index.html')#,200,headers
 
 #обработка ошибок 
 @app.errorhandler(CSRFError)
 def handle_csrf_error(e):
-	return e.description , 400, headers
+	return {'status':'error', 'msg':e.description }
 
 @app.route('/upload',methods=['POST','OPTIONS'])
-@csrf.exempt#TODO: разобраться с r.setRequestHeader ("X-CSRFToken" , csrf_token );
-# работает в собраном приложени, НО с браузера выдает ошибку: 'The CSRF session token is missing.'
-# для запуска из браузера строку @csrf.exempt расскоментировать
 def upload():
-	if request.method == 'OPTIONS':
-		return "{'Allow':'POST'}",200,headers
 	
 	file = request.files.get('file')#получаем файл из запроса
 	# если файл в запросе есть 
 	if not file:
 	# принцип слабой связаности данных, со страницы такого запроса прийти не может, но проверим
-		return  'error loading file %s'%file.filename, 200, headers
+		return  {'status':'error loading','file':file.filename}
 	
 	if check_file(file):
 		# создаем имя для сохранения файла
@@ -49,8 +58,8 @@ def upload():
 		# сохраняем файл
 		file.save(filename)
 		# возвращаем ответ что файл успешно загружен
-		return '% s success upload'%file.filename, 202 , headers
+		return {'status':'succes upload','file':file.filename}
 	# возвращаем ответ что файл не  загружен потомучто не прошел проверку
-	return  'error loading %s, file failed verification'%file.filename, 200, headers
+	return  {'status':'error loading, file failed verification','file':file.filename}
 
 app.run()
